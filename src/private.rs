@@ -1,17 +1,21 @@
 //! Contains structure which provides access to Private section of Coinbase api
 
+use async_stream::try_stream;
+use futures::stream::Stream;
 use futures_util::future::TryFutureExt;
 use hyper::header::HeaderValue;
 use hyper::{Body, Method, Request, Uri};
 use serde_json;
 use std::future::Future;
 use std::time::{SystemTime, UNIX_EPOCH};
+use uritemplate::UriTemplate;
 use uuid::Uuid;
 
 use crate::adapters::{Adapter, AdapterNew};
 use crate::error::*;
 use crate::structs::private::*;
 use crate::structs::{reqs, DateTime};
+use crate::structs::public::Response;
 use hmac::{Hmac, Mac, NewMac};
 use sha2::Sha256;
 
@@ -46,6 +50,19 @@ impl<A> Private<A> {
     {
         self._pub
             .call_future(self.request(method, uri, body_str.to_string()))
+    }
+
+    fn call_future_headers<U>(
+        &self,
+        method: Method,
+        uri: &str,
+        body_str: &str,
+    ) -> impl Future<Output = Result<Response<U>, CBError>>
+    where
+        for<'de> U: serde::Deserialize<'de> + 'static,
+    {
+        self._pub
+            .call_future_headers(self.request(method, uri, body_str.to_string()))
     }
 
     fn call<U>(&self, method: Method, uri: &str, body_str: &str) -> A::Result
@@ -194,6 +211,35 @@ impl<A> Private<A> {
             });
 
         self._pub.adapter.process(f)
+    }
+
+    pub fn get_account_hist_stream<'a>(&'a self, id: Uuid) -> impl Stream<Item = Result<Vec<AccountHistory>, CBError>> + 'a
+    {
+        let mut template = UriTemplate::new("/accounts/{account}/ledger{?query*}");
+        const LIMIT: usize = 100;
+        let uri = template
+            .set("account", id.to_string())
+            .set("query", &[("limit", LIMIT.to_string().as_ref())])
+            .build();
+
+        try_stream! {
+            dbg!(&uri);
+            let mut response : Response<Vec<AccountHistory>> = self.call_future_headers(Method::GET, &uri, "").await?;
+            dbg!(&response);
+            yield response.data;
+
+            while let Some(ref after) = response.after {
+                let uri = template
+                    .set("account", id.to_string())
+                    .set("query", &[("after", after.as_ref()), ("limit", LIMIT.to_string().as_ref())])
+                    .build();
+                dbg!(&uri);
+
+                response = self.call_future_headers(Method::GET, &uri, "").await?;
+                dbg!(&response);
+                yield response.data;
+            }
+        }
     }
 
     /// **Get Holds**

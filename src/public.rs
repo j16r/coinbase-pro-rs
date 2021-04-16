@@ -7,6 +7,7 @@ use hyper_tls::HttpsConnector;
 use serde::Deserialize;
 use std::fmt::Debug;
 use std::future::Future;
+use std::collections::HashMap;
 
 use super::adapters::*;
 use crate::error::*;
@@ -62,6 +63,40 @@ impl<A> Public<A> {
                 err
             });
             res
+        }
+    }
+
+    pub(crate) fn call_future_headers<U>(
+        &self,
+        request: Request<Body>,
+    ) -> impl Future<Output = Result<Response<U>, CBError>> + 'static
+    where
+        for<'de> U: serde::Deserialize<'de> + 'static,
+    {
+        log::debug!("REQ: {:?}", request);
+
+        let res = self.client.request(request);
+        async move {
+            let res = res.await.map_err(CBError::Http)?;
+            let headers = res.headers().clone();
+            let body = to_bytes(res.into_body()).await.map_err(CBError::Http)?;
+            log::debug!("RES: {:#?}", body);
+            serde_json::from_slice(&body).map_err(|e| {
+                let err = serde_json::from_slice(&body);
+                let err = err.map(CBError::Coinbase).unwrap_or_else(|_| {
+                    let data = String::from_utf8(body.to_vec()).unwrap();
+                    CBError::Serde { error: e, data }
+                });
+                err
+            }).and_then(|body| {
+                Ok(Response{
+                    data: body,
+                    before: headers.get("CB-BEFORE")
+                        .and_then(|h| h.to_str().map(|v| v.to_string()).ok()),
+                    after:  headers.get("CB-AFTER")
+                        .and_then(|h| h.to_str().map(|v| v.to_string()).ok()),
+                })
+            })
         }
     }
 

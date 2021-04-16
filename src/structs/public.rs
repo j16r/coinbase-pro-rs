@@ -6,6 +6,13 @@ use uuid::Uuid;
 // Public
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct Response<U> {
+    pub data: U,
+    pub before: Option<String>,
+    pub after: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Time {
     pub iso: String,
     pub epoch: f64,
