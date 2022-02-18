@@ -216,7 +216,7 @@ impl<A> Private<A> {
     pub fn get_account_hist_stream<'a>(&'a self, id: Uuid) -> impl Stream<Item = Result<Vec<AccountHistory>, CBError>> + 'a
     {
         let mut template = UriTemplate::new("/accounts/{account}/ledger{?query*}");
-        const LIMIT: usize = 100;
+        const LIMIT: usize = 1000;
         let uri = template
             .set("account", id.to_string())
             .set("query", &[("limit", LIMIT.to_string().as_ref())])
