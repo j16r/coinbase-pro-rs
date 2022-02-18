@@ -7,7 +7,6 @@ use hyper_tls::HttpsConnector;
 use serde::Deserialize;
 use std::fmt::Debug;
 use std::future::Future;
-use std::collections::HashMap;
 
 use super::adapters::*;
 use crate::error::*;
