@@ -55,11 +55,11 @@ impl<A> Public<A> {
             log::debug!("RES: {:#?}", body);
             let res: Result<U, CBError> = serde_json::from_slice(&body).map_err(|e| {
                 let err = serde_json::from_slice(&body);
-                let err = err.map(CBError::Coinbase).unwrap_or_else(|_| {
+                
+                err.map(CBError::Coinbase).unwrap_or_else(|_| {
                     let data = String::from_utf8(body.to_vec()).unwrap();
                     CBError::Serde { error: e, data }
-                });
-                err
+                })
             });
             res
         }
@@ -82,20 +82,18 @@ impl<A> Public<A> {
             log::debug!("RES: {:#?}", body);
             serde_json::from_slice(&body).map_err(|e| {
                 let err = serde_json::from_slice(&body);
-                let err = err.map(CBError::Coinbase).unwrap_or_else(|_| {
+                
+                err.map(CBError::Coinbase).unwrap_or_else(|_| {
                     let data = String::from_utf8(body.to_vec()).unwrap();
                     CBError::Serde { error: e, data }
-                });
-                err
-            }).and_then(|body| {
-                Ok(Response{
+                })
+            }).map(|body| Response{
                     data: body,
                     before: headers.get("CB-BEFORE")
                         .and_then(|h| h.to_str().map(|v| v.to_string()).ok()),
                     after:  headers.get("CB-AFTER")
                         .and_then(|h| h.to_str().map(|v| v.to_string()).ok()),
                 })
-            })
         }
     }
 
@@ -246,7 +244,7 @@ mod tests {
         assert!(time_str.starts_with("Time {"));
         assert!(time_str.contains("iso:"));
         assert!(time_str.contains("epoch:"));
-        assert!(time_str.ends_with("}"));
+        assert!(time_str.ends_with('}'));
     }
 
     #[test]
@@ -278,8 +276,8 @@ mod tests {
         let book_l1 = client.get_book::<BookRecordL1>("BTC-USD").unwrap();
         let str1 = format!("{:?}", book_l1);
         assert_eq!(1, book_l1.bids.len());
-        assert!(book_l1.bids.len() > 0);
-        assert!(book_l1.asks.len() > 0);
+        assert!(!book_l1.bids.is_empty());
+        assert!(!book_l1.asks.is_empty());
         assert!(str1.contains("bids: [BookRecordL1 {"));
         let book_l2 = client.get_book::<BookRecordL2>("BTC-USD").unwrap();
         let str2 = format!("{:?}", book_l2);

@@ -604,7 +604,7 @@ mod tests {
         let str = serde_json::to_string(&order).unwrap();
         assert_eq!(
             vec![0],
-            str.match_indices("{").map(|(x, _)| x).collect::<Vec<_>>()
+            str.match_indices('{').map(|(x, _)| x).collect::<Vec<_>>()
         );
     }
 
@@ -718,8 +718,8 @@ mod tests {
         let order1 = client.buy_limit("BTC-USD", 1.0, 1.12, true).unwrap();
         let order2 = client.buy_limit("BTC-USD", 1.0, 1.12, true).unwrap();
         let res = client.cancel_all(Some("BTC-USD")).unwrap();
-        assert!(res.iter().find(|x| **x == order1.id).is_some());
-        assert!(res.iter().find(|x| **x == order2.id).is_some());
+        assert!(res.iter().any(|x| *x == order1.id));
+        assert!(res.iter().any(|x| *x == order2.id));
     }
 
     #[test]
@@ -782,7 +782,7 @@ mod tests {
         delay();
         let client: Private<Sync> = Private::new(SANDBOX_URL, KEY, SECRET, PASSPHRASE);
         let fills = client.get_fills(None, Some("BTC-USD")).unwrap();
-        if fills.len() > 0 {
+        if !fills.is_empty() {
             let str = format!("{:?}", fills);
             assert!(str.contains("Fill { trade_id: "));
         }
@@ -809,7 +809,7 @@ mod tests {
         assert!(time_str.starts_with("Time {"));
         assert!(time_str.contains("iso:"));
         assert!(time_str.contains("epoch:"));
-        assert!(time_str.ends_with("}"));
+        assert!(time_str.ends_with('}'));
     }
 
     #[test]

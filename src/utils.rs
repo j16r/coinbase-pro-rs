@@ -48,7 +48,7 @@ where
     D: Deserializer<'de>,
 {
     let s = String::deserialize(d)?;
-    if s.len() == 0 {
+    if s.is_empty() {
         Ok(None)
     } else {
         Uuid::from_str(&s).map_err(de::Error::custom).map(Some)

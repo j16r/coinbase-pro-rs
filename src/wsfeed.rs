@@ -34,11 +34,11 @@ impl WSFeed {
     ) -> Result<impl CBStream + CBSink, CBError> {
         let subscribe = Subscribe {
             _type: SubscribeCmd::Subscribe,
-            product_ids: product_ids.into_iter().map(|x| x.to_string()).collect(),
+            product_ids: product_ids.iter().map(|x| x.to_string()).collect(),
             channels: channels
                 .to_vec()
                 .into_iter()
-                .map(|x| Channel::Name(x))
+                .map(Channel::Name)
                 .collect::<Vec<_>>(),
             auth: None,
         };
@@ -98,11 +98,11 @@ impl WSFeed {
 
         let subscribe = Subscribe {
             _type: SubscribeCmd::Subscribe,
-            product_ids: product_ids.into_iter().map(|x| x.to_string()).collect(),
+            product_ids: product_ids.iter().map(|x| x.to_string()).collect(),
             channels: channels
                 .to_vec()
                 .into_iter()
-                .map(|x| Channel::Name(x))
+                .map(Channel::Name)
                 .collect::<Vec<_>>(),
             auth: Some(auth),
         };
@@ -123,11 +123,11 @@ pub trait CBSink: Sink<TMessage, Error = CBError> + Unpin + Send {
     ) -> Result<(), CBError> {
         let subscribe = Subscribe {
             _type: SubscribeCmd::Subscribe,
-            product_ids: product_ids.into_iter().map(|x| x.to_string()).collect(),
+            product_ids: product_ids.iter().map(|x| x.to_string()).collect(),
             channels: channels
                 .to_vec()
                 .into_iter()
-                .map(|x| Channel::Name(x))
+                .map(Channel::Name)
                 .collect::<Vec<_>>(),
             auth,
         };
@@ -431,7 +431,7 @@ mod tests {
                     if str.starts_with(
                         "Subscriptions { channels: [WithProduct { name: Full, product_ids",
                     ) {
-                        ()
+                        
                     } else if str.starts_with("Full(Match(Match { trade_id: ") {
                         found_match_2.swap(true, Ordering::Relaxed);
                     } else if str.starts_with("Full(Done(Limit { time: ") {
@@ -494,8 +494,7 @@ mod tests {
                                 Private::new(SANDBOX_URL, KEY, SECRET, PASSPHRASE);
                             let res: Result<(), CBError> = client
                                 .buy_limit("BTC-USD", 0.001_f64, 100.0_f64, true)
-                                .await
-                                .and_then(|_| Ok(()))
+                                .await.map(|_| ())
                                 .map_err(|_| {
                                     CBError::Websocket(WSError::Read(
                                         tokio_tungstenite::tungstenite::Error::Utf8,

@@ -76,7 +76,7 @@ mod tests {
         assert!(time_str.starts_with("Time {"));
         assert!(time_str.contains("iso:"));
         assert!(time_str.contains("epoch:"));
-        assert!(time_str.ends_with("}"));
+        assert!(time_str.ends_with('}'));
     }
 
     #[test]
@@ -89,7 +89,7 @@ mod tests {
             assert!(time_str.starts_with("Time {"));
             assert!(time_str.contains("iso:"));
             assert!(time_str.contains("epoch:"));
-            assert!(time_str.ends_with("}"));
+            assert!(time_str.ends_with('}'));
             future::ready(Ok(()))
         });
         let rt = Runtime::new().unwrap();
