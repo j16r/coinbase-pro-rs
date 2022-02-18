@@ -55,7 +55,7 @@ impl<A> Public<A> {
             log::debug!("RES: {:#?}", body);
             let res: Result<U, CBError> = serde_json::from_slice(&body).map_err(|e| {
                 let err = serde_json::from_slice(&body);
-                
+
                 err.map(CBError::Coinbase).unwrap_or_else(|_| {
                     let data = String::from_utf8(body.to_vec()).unwrap();
                     CBError::Serde { error: e, data }
@@ -80,18 +80,22 @@ impl<A> Public<A> {
             let headers = res.headers().clone();
             let body = to_bytes(res.into_body()).await.map_err(CBError::Http)?;
             log::debug!("RES: {:#?}", body);
-            serde_json::from_slice(&body).map_err(|e| {
-                let err = serde_json::from_slice(&body);
-                
-                err.map(CBError::Coinbase).unwrap_or_else(|_| {
-                    let data = String::from_utf8(body.to_vec()).unwrap();
-                    CBError::Serde { error: e, data }
+            serde_json::from_slice(&body)
+                .map_err(|e| {
+                    let err = serde_json::from_slice(&body);
+
+                    err.map(CBError::Coinbase).unwrap_or_else(|_| {
+                        let data = String::from_utf8(body.to_vec()).unwrap();
+                        CBError::Serde { error: e, data }
+                    })
                 })
-            }).map(|body| Response{
+                .map(|body| Response {
                     data: body,
-                    before: headers.get("CB-BEFORE")
+                    before: headers
+                        .get("CB-BEFORE")
                         .and_then(|h| h.to_str().map(|v| v.to_string()).ok()),
-                    after:  headers.get("CB-AFTER")
+                    after: headers
+                        .get("CB-AFTER")
                         .and_then(|h| h.to_str().map(|v| v.to_string()).ok()),
                 })
         }

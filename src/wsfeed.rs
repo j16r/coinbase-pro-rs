@@ -431,7 +431,6 @@ mod tests {
                     if str.starts_with(
                         "Subscriptions { channels: [WithProduct { name: Full, product_ids",
                     ) {
-                        
                     } else if str.starts_with("Full(Match(Match { trade_id: ") {
                         found_match_2.swap(true, Ordering::Relaxed);
                     } else if str.starts_with("Full(Done(Limit { time: ") {
@@ -494,7 +493,8 @@ mod tests {
                                 Private::new(SANDBOX_URL, KEY, SECRET, PASSPHRASE);
                             let res: Result<(), CBError> = client
                                 .buy_limit("BTC-USD", 0.001_f64, 100.0_f64, true)
-                                .await.map(|_| ())
+                                .await
+                                .map(|_| ())
                                 .map_err(|_| {
                                     CBError::Websocket(WSError::Read(
                                         tokio_tungstenite::tungstenite::Error::Utf8,

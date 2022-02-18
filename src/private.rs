@@ -213,8 +213,10 @@ impl<A> Private<A> {
         self._pub.adapter.process(f)
     }
 
-    pub fn get_account_hist_stream<'a>(&'a self, id: Uuid) -> impl Stream<Item = Result<Vec<AccountHistory>, CBError>> + 'a
-    {
+    pub fn get_account_hist_stream<'a>(
+        &'a self,
+        id: Uuid,
+    ) -> impl Stream<Item = Result<Vec<AccountHistory>, CBError>> + 'a {
         let mut template = UriTemplate::new("/accounts/{account}/ledger{?query*}");
         const LIMIT: usize = 1000;
         let uri = template
@@ -476,7 +478,7 @@ impl<A> Private<A> {
     /// Quoted rates are subject to change. More information on fees can found on the support page.
     pub fn get_fees(&self) -> A::Result
     where
-        A: Adapter<Fees> + 'static
+        A: Adapter<Fees> + 'static,
     {
         self.call_get("/fees")
     }
