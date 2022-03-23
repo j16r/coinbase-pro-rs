@@ -225,9 +225,7 @@ impl<A> Private<A> {
             .build();
 
         try_stream! {
-            dbg!(&uri);
             let mut response : Response<Vec<AccountHistory>> = self.call_future_headers(Method::GET, &uri, "").await?;
-            dbg!(&response);
             yield response.data;
 
             while let Some(ref after) = response.after {
@@ -235,10 +233,8 @@ impl<A> Private<A> {
                     .set("account", id.to_string())
                     .set("query", &[("after", after.as_ref()), ("limit", LIMIT.to_string().as_ref())])
                     .build();
-                dbg!(&uri);
 
                 response = self.call_future_headers(Method::GET, &uri, "").await?;
-                dbg!(&response);
                 yield response.data;
             }
         }
@@ -362,7 +358,7 @@ impl<A> Private<A> {
     where
         A: Adapter<Uuid> + 'static,
     {
-        let f = self.call_feature(Method::DELETE, dbg!(&format!("/orders/{}", id)), "");
+        let f = self.call_feature(Method::DELETE, &format!("/orders/{}", id), "");
 
         self._pub.adapter.process(f)
     }

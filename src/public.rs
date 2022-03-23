@@ -300,7 +300,6 @@ mod tests {
         let client: Public<Sync> = Public::new(SANDBOX_URL);
         let ticker = client.get_ticker("BTC-USD").unwrap();
         let str = format!("{:?}", ticker);
-        dbg!(&str);
         assert!(str.starts_with("Ticker { trade_id:"));
         assert!(str.contains("time:"));
     }
@@ -373,7 +372,6 @@ mod tests {
         let time = Instant::now();
         let _ = client.get_time().unwrap();
         let time = time.elapsed().subsec_millis();
-        dbg!(time);
         assert!(time <= 500, "too slow")
     }
 
@@ -387,7 +385,6 @@ mod tests {
         let time = Instant::now();
         client.get_time().await.unwrap();
         let time = time.elapsed().subsec_millis();
-        dbg!(time);
         assert!(time <= 150, "too slow")
     }
 
@@ -402,7 +399,6 @@ mod tests {
         let _ = client.get_time().await.unwrap();
         let time = time.elapsed().subsec_millis();
 
-        dbg!(time);
         assert!(time <= 150, "too slow")
     }
 
