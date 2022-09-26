@@ -81,6 +81,8 @@ pub use crate::private::Private;
 pub use crate::public::Public;
 pub use crate::wsfeed::WSFeed;
 
+pub use uuid::Uuid;
+
 #[cfg(test)]
 #[macro_use]
 extern crate serial_test;
