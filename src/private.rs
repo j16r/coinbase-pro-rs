@@ -16,7 +16,7 @@ use crate::error::*;
 use crate::structs::private::*;
 use crate::structs::{reqs, DateTime};
 use crate::structs::public::Response;
-use hmac::{Hmac, Mac, NewMac};
+use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
 use crate::public::Public;
@@ -34,7 +34,7 @@ pub struct Private<Adapter> {
 impl<A> Private<A> {
     pub fn sign(secret: &str, timestamp: u64, method: Method, uri: &str, body_str: &str) -> String {
         let key = base64::decode(secret).expect("base64::decode secret");
-        let mut mac = HmacSha256::new_varkey(&key).expect("Hmac::new(key)");
+        let mut mac = HmacSha256::new_from_slice(&key).expect("Hmac::new(key)");
         mac.update((timestamp.to_string() + method.as_str() + uri + body_str).as_bytes());
         base64::encode(&mac.finalize().into_bytes())
     }
